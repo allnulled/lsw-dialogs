@@ -11,6 +11,8 @@
                             {{ dialog.title }}
                         </div>
                         <div class="dialog_topbar_buttons">
+                            <button class="mini" v-if="enabledWindowsSystem"
+                                v-on:click="goHome">...</button>
                             <button class="mini"
                                 v-on:click="minimize(dialog.id)">-</button>
                             <button class="mini"

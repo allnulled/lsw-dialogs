@@ -60,9 +60,15 @@
   Vue.component("LswDialogs", {
     name: "LswDialogs",
     template: $template,
-    props: {},
+    props: {
+      asWindows: {
+        type: Boolean,
+        default: () => false
+      }
+    },
     data() {
       return {
+        enabledWindowsSystem: this.asWindows,
         opened: {},
         openedLength: 0,
         hookOnOpen: undefined,
@@ -242,6 +248,9 @@
           throw new Error(`Cannot minimize dialog «${id}» because it is not opened on «LswDialogs.minimize»`);
         }
         this.opened[id].minimized = true;
+      },
+      goHome() {
+        this.$window.LswWindows.show();
       },
       onOpen(callback) {
         this.hookOnOpen = callback;
