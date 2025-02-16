@@ -1,3 +1,6 @@
+.lsw_dialogs_root {
+    
+}
 .lsw_dialogs {
     position: fixed;
     top: 5px;
@@ -38,6 +41,7 @@
     
 }
 .dialog_window .dialog_body {
+    position: relative;
     flex: 100;
     padding: 0px;
     overflow: scroll;

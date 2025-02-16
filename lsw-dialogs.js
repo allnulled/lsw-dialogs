@@ -71,13 +71,15 @@
         enabledWindowsSystem: this.asWindows,
         opened: {},
         openedLength: 0,
+        notMinimizedLength: 0,
         hookOnOpen: undefined,
         hookOnClose: closeSubdialogsHook,
       };
     },
     watch: {
       opened(newValue) {
-        this.openedLength = typeof newValue !== "object" ? 0 : Object.keys(newValue).length;
+        this.openedLength = (typeof newValue !== "object") ? 0 : Object.keys(newValue).length;
+        this._refreshMinimizedLength(newValue);
       }
     },
     methods: {
@@ -115,9 +117,9 @@
         const dialogComponentInput = typeof factory === "function" ? factory() : factory;
         const dialogComponentData = (() => {
           if (typeof dialogComponentInput.data === "undefined") {
-            return function() { return {}; };
+            return function () { return {}; };
           } else if (typeof dialogComponentInput.data === "object") {
-            return function() { return dialogComponentInput.data };
+            return function () { return dialogComponentInput.data };
           } else if (typeof dialogComponentInput.data === "function") {
             return dialogComponentInput.data;
           } else {
@@ -131,7 +133,7 @@
           template,
           data() {
             const preData = dialogComponentData.call(this);
-            if(typeof preData.value === "undefined") {
+            if (typeof preData.value === "undefined") {
               preData.value = "";
             };
             return preData;
@@ -248,6 +250,38 @@
           throw new Error(`Cannot minimize dialog «${id}» because it is not opened on «LswDialogs.minimize»`);
         }
         this.opened[id].minimized = true;
+        this._refreshMinimizedLength(this.opened);
+      },
+      maximize(id) {
+        if (typeof id !== "string") {
+          throw new Error("Required parameter «id» (argument:1) to be a string on «LswDialogs.maximize»");
+        }
+        if (!(id in this.opened)) {
+          throw new Error(`Cannot minimize dialog «${id}» because it is not opened on «LswDialogs.maximize»`);
+        }
+        Iterating_dialogs:
+        for (let dialogId in this.opened) {
+          if (id === dialogId) {
+            continue Iterating_dialogs;
+          }
+          const dialogData = this.opened[dialogId];
+          const currentPriority = parseInt(dialogData.priority);
+          this.opened[dialogId].priority = currentPriority - 1;
+
+        }
+        this.opened[id].priority = 500;
+        this.opened[id].minimized = false;
+        this._refreshMinimizedLength();
+      },
+      _refreshMinimizedLength(newValue = this.opened) {
+        this.notMinimizedLength = Object.keys(newValue).reduce((out, k) => {
+          const v = newValue[k];
+          if (v.minimized === false) {
+            out++;
+          }
+          return out;
+        }, 0);
+        this.$forceUpdate(true);
       },
       goHome() {
         this.$window.LswWindows.show();
@@ -261,7 +295,7 @@
     },
     mounted() {
       Vue.prototype.$dialogs = this;
-      if(Vue.prototype.$lsw) {
+      if (Vue.prototype.$lsw) {
         Vue.prototype.$lsw.dialogs = this;
       }
       window.LswDialogs = this;
