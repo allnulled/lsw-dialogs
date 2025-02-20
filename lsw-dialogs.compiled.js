@@ -181,6 +181,7 @@
             if (typeof preData.value === "undefined") {
               preData.value = "";
             };
+            console.log("El data del nuevo componente dialog:", preData);
             return preData;
           },
           watch: (dialogComponentInput.watch || {}),
