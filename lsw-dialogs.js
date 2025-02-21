@@ -42,6 +42,12 @@
         if (typeof this.promiser.reject !== "function") {
           throw new Error(`Required parameter «dialog.promiser.reject» to be an function on «Dialog.constructor»`);
         }
+        if (typeof this.acceptButton !== "object") {
+          this.acceptButton = false;
+        }
+        if (typeof this.cancelButton !== "object") {
+          this.cancelButton = false;
+        }
       }
     }
   }
@@ -67,6 +73,7 @@
       }
     },
     data() {
+      this.$trace("lsw-dialogs.data", arguments);
       return {
         enabledWindowsSystem: this.asWindows,
         opened: {},
@@ -78,12 +85,14 @@
     },
     watch: {
       opened(newValue) {
+        this.$trace("lsw-dialogs.watch.opened", ["too long object"]);
         this.openedLength = (typeof newValue !== "object") ? 0 : Object.keys(newValue).length;
         this._refreshMinimizedLength(newValue);
       }
     },
     methods: {
       open(parametricObject = {}) {
+        this.$trace("lsw-dialogs.methods.open", arguments);
         if (typeof parametricObject !== "object") {
           throw new Error(`Required argument «parametricObject» to be an object on «LswDialogs.methods.open»`);
         }
@@ -128,10 +137,12 @@
           }
         })();
         // 1) Este es para el Vue.component:
+        const componentId = Dialog.fromIdToComponentName(id);
         const dialogComponent = Object.assign({}, dialogComponentInput, {
-          name: Dialog.fromIdToComponentName(id),
+          name: componentId,
           template,
-          data() {
+          data(...args) {
+            this.$trace(`lsw-dialogs.[${componentId}].data`, ["too long object"]);
             const preData = dialogComponentData.call(this);
             if (typeof preData.value === "undefined") {
               preData.value = "";
@@ -143,24 +154,29 @@
           computed: (dialogComponentInput.computed || {}),
           methods: {
             getValue() {
+              this.$trace(`lsw-dialogs.[${componentId}].methods.getValue`, []);
               return JSON.parse(JSON.stringify(this.value));
             },
-            accept: function (solution = undefined) {
+            accept(solution = undefined, ...args) {
+              this.$trace(`lsw-dialogs.[${componentId}].methods.accept`, [solution, ...args]);
               if (solution instanceof Event) {
                 return this.$dialogs.resolve(id, this.getValue()).close(id);
               }
               return this.$dialogs.resolve(id, typeof solution !== "undefined" ? solution : this.getValue()).close(id);
             },
-            cancel: function () {
+            cancel(...args) {
+              this.$trace("lsw-dialogs.[${componentId}].methods.cancel", args);
               return this.$dialogs.resolve(id, -1).close(id);
             },
-            abort: function (error = undefined) {
+            abort(error = undefined, ...args) {
+              this.$trace(`lsw-dialogs.[${componentId}].methods.abort`, [error, ...args]);
               if (solution instanceof Event) {
                 return this.$dialogs.reject(id, new Error("Aborted dialog error")).close(id);
               }
               return this.$dialogs.reject(id, error).close(id);
             },
-            close: function () {
+            close(...args) {
+              this.$trace(`lsw-dialogs.[${componentId}].methods.close`, args);
               return this.$dialogs.resolve(id, -2).close(id);
             },
             ...(dialogComponentInput.methods || {})
@@ -171,6 +187,7 @@
         }
         // 1) Este es para el this.$dialogs:
         const dialogDefinition = Object.assign({}, {
+          ...parametricObject,
           id,
           title,
           name: dialogComponent.name,
@@ -181,9 +198,11 @@
           created_at,
           promiser: Promise.withResolvers(),
         });
+        const dialogInstance = new Dialog(dialogDefinition);
+        console.log("Definición final del dialogo", dialogInstance);
         Define_dialog: {
           this.opened = Object.assign({}, this.opened, {
-            [id]: new Dialog(dialogDefinition)
+            [id]: dialogInstance
           });
         }
         if (typeof this.hookOnOpen === "function") {
@@ -191,7 +210,8 @@
         }
         return this.opened[id].promiser.promise;
       },
-      resolve(id, solution) {
+      resolve(id, solution, ...args) {
+        this.$trace("lsw-dialogs.methods.resolve", [id, solution, ...args]);
         if (typeof id !== "string") {
           throw new Error("Required parameter «id» (argument:1) to be a string on «LswDialogs.resolve»");
         }
@@ -203,7 +223,8 @@
           close: () => this.close(id)
         };
       },
-      reject(id, error) {
+      reject(id, error, ...args) {
+        this.$trace("lsw-dialogs.methods.reject", [id, error, ...args]);
         if (typeof id !== "string") {
           throw new Error("Required parameter «id» (argument:1) to be a string on «LswDialogs.reject»");
         }
@@ -215,7 +236,8 @@
           close: () => this.close(id)
         };
       },
-      close(id) {
+      close(id, ...args) {
+        this.$trace("lsw-dialogs.methods.close", [id, ...args]);
         if (typeof id !== "string") {
           throw new Error("Required parameter «id» (argument:1) to be a string on «LswDialogs.close»");
         }
@@ -243,7 +265,8 @@
         return promiseOfDialog;
         // this.$forceUpdate(true);
       },
-      minimize(id) {
+      minimize(id, ...args) {
+        this.$trace("lsw-dialogs.methods.minimize", [id, ...args]);
         if (typeof id !== "string") {
           throw new Error("Required parameter «id» (argument:1) to be a string on «LswDialogs.minimize»");
         }
@@ -253,7 +276,8 @@
         this.opened[id].minimized = true;
         this._refreshMinimizedLength(this.opened);
       },
-      maximize(id) {
+      maximize(id, ...args) {
+        this.$trace("lsw-dialogs.methods.maximize", [id, ...args]);
         if (typeof id !== "string") {
           throw new Error("Required parameter «id» (argument:1) to be a string on «LswDialogs.maximize»");
         }
@@ -274,7 +298,8 @@
         this.opened[id].minimized = false;
         this._refreshMinimizedLength();
       },
-      _refreshMinimizedLength(newValue = this.opened) {
+      _refreshMinimizedLength(newValue = this.opened, ...args) {
+        this.$trace("lsw-dialogs.methods._refreshMinimizedLength", ["too long object", ...args]);
         this.notMinimizedLength = Object.keys(newValue).reduce((out, k) => {
           const v = newValue[k];
           if (v.minimized === false) {
@@ -284,17 +309,21 @@
         }, 0);
         this.$forceUpdate(true);
       },
-      goHome() {
+      goHome(...args) {
+        this.$trace("lsw-dialogs.methods.goHome", [...args]);
         this.$window.LswWindows.show();
       },
-      onOpen(callback) {
+      onOpen(callback, ...args) {
+        this.$trace("lsw-dialogs.methods.onOpen", [callback, ...args]);
         this.hookOnOpen = callback;
       },
-      onClose(callback) {
+      onClose(callback, ...args) {
+        this.$trace("lsw-dialogs.methods.onClose", [callback, ...args]);
         this.hookOnClose = callback;
       }
     },
-    mounted() {
+    mounted(...args) {
+      this.$trace("lsw-dialogs.mounted", [...args]);
       Vue.prototype.$dialogs = this;
       if (Vue.prototype.$lsw) {
         Vue.prototype.$lsw.dialogs = this;
@@ -303,39 +332,5 @@
       console.log("[*] LswDialogs mounted.");
     }
   });
-
-  if (process.env.NODE_ENV === "test") {
-    setTimeout(() => {
-      return;
-      describe("Científico de JavaScript logra dialogs puro", it => {
-        it("can do it", async function () {
-          const name1promise = LswDialogs.open({
-            id: 'default',
-            priority: 101,
-            template: `
-              <div>
-                <div>Pon tu nombre 1:</div>
-                <input type="text" v-model="value" style="width:100%;" />
-                <button v-on:click="accept">Aceptar</button>
-              </div>
-            `,
-          });
-          const name2promise = LswDialogs.open({
-            id: 'default.1',
-            parentId: 'default',
-            priority: 102,
-            template: `
-              <div>
-                <div>Pon tu nombre 2:</div>
-                <input type="text" v-model="value" style="width:100%;" />
-                <button v-on:click="accept">Aceptar</button>
-              </div>
-            `,
-          });
-          console.log(await Promise.all([name1promise, name2promise]));
-        });
-      });
-    }, 1000 * 6);
-  }
 
 })();

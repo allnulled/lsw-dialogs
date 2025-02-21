@@ -19,6 +19,14 @@ npm i -s @allnulled/lsw-dialogs
 
 The *compiled version* is because the template is injected to the JavaScript via a simple replace (but it is still needed).
 
+Then you have to include it on you `vue@2` markup, somewhere:
+
+```html
+<lsw-dialogs />
+```
+
+Then magic can work.
+
 ## Usage
 
 This example only misses the `parentId`, which can be extracted from `LswDialogs.opened[$id]` and references to a parent process in the processes tree.
@@ -139,3 +147,30 @@ So, as you can see, only `template` is required.
 Further from this, is all about how the API works, and it only takes around 300 lines to understand deeper what it does.
 
 So, if you want to use it, I think this is enough to start. And if you want to fork/customize/intensively explote, you can explore the sources.
+
+## Extras de LSW
+
+Para ponerle los botones de aceptar o cancelar, puedes usar los parámetros:
+
+```js
+await Vue.prototype.$dialogs.open({
+  title: "Example of bottom buttons customization",
+  template: `
+    <div>
+      <p>OK, there we go!</p>
+    </div>
+  `,
+  factory: {
+    data: {
+      acceptButton: {
+        text: "OK",
+        callback: function() {}
+      },
+      cancelButton: {
+        text: "Nope, no way!",
+        callback: function() {}
+      }
+    }
+  }
+});
+```
