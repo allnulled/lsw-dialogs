@@ -136,18 +136,32 @@
             throw new Error("Required parameter «data» returned by «factory» to be an object, a function or empty on «LswDialogs.methods.open»");
           }
         })();
+        const scopifyMethods = function(obj, scope) {
+          return Object.keys(obj).reduce((out, k) => {
+            const v = obj[k];
+            if(typeof v !== "function") {
+              out[k] = v;
+            } else {
+              out[k] = v.bind(scope);
+            }
+            return out;
+          }, {});
+        };
         // 1) Este es para el Vue.component:
         const componentId = Dialog.fromIdToComponentName(id);
         const dialogComponent = Object.assign({}, dialogComponentInput, {
           name: componentId,
           template,
-          data(...args) {
+          data(component, ...args) {
             this.$trace(`lsw-dialogs.[${componentId}].data`, ["too long object"]);
             const preData = dialogComponentData.call(this);
             if (typeof preData.value === "undefined") {
               preData.value = "";
             };
             console.log("El data del nuevo componente dialog:", preData);
+            dialogComponentInput.watch = scopifyMethods(dialogComponentInput.watch || {}, component);
+            dialogComponentInput.computed = scopifyMethods(dialogComponentInput.computed || {}, component);
+            dialogComponentInput.methods = scopifyMethods(dialogComponentInput.methods || {}, component);
             return preData;
           },
           watch: (dialogComponentInput.watch || {}),

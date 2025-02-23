@@ -1,5 +1,4 @@
 <div class="lws_dialogs_root">
-    {{ notMinimizedLength }}
     <div class="lsw_dialogs"
         v-if="openedLength && notMinimizedLength">
         <div class="lsw_dialogs_box">
@@ -28,11 +27,11 @@
                         <div class="dialog_footer">
                             <button v-if="dialog && dialog.acceptButton"
                                 class=""
-                                v-on:click="() => dialog.acceptButton.callback ? dialog.acceptButton.callback(dialog.id, dialog) : resolve(dialog.id).close()">{{
+                                v-on:click="() => dialog.acceptButton.callback ? dialog.acceptButton.callback($refs['currentDialogComponent_' + dialog_index][0], dialog, dialog.id, this) : resolve(dialog.id).close()">{{
                                 dialog.acceptButton.text || "Accept" }}</button>
                             <button v-if="dialog && dialog.cancelButton"
                                 class=""
-                                v-on:click="() => dialog.cancelButton.callback ? dialog.cancelButton.callback(dialog.id, dialog) : close(dialog.id)">{{
+                                v-on:click="() => dialog.cancelButton.callback ? dialog.cancelButton.callback($refs['currentDialogComponent_' + dialog_index][0], dialog, dialog.id, this) : close(dialog.id)">{{
                                 dialog.cancelButton.text || "Cancel" }}</button>
                             <button v-else
                                 class=""
