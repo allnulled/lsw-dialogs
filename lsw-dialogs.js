@@ -73,7 +73,7 @@
       }
     },
     data() {
-      this.$trace("lsw-dialogs.data", arguments);
+      this.$trace("lsw-dialogs.data", []);
       return {
         enabledWindowsSystem: this.asWindows,
         opened: {},
@@ -110,7 +110,8 @@
           throw new Error(`Required parameter «id» to be a string on «LswDialogs.methods.open»`);
         }
         if (id in this.opened) {
-          throw new Error(`Cannot open dialog «${id}» because it is already opened on «LswDialogs.methods.open»`);
+          return this.maximize(id);
+          // throw new Error(`Cannot open dialog «${id}» because it is already opened on «LswDialogs.methods.open»`);
         }
         if (typeof template !== "string") {
           throw new Error(`Required parameter «template» to be a string on «LswDialogs.methods.open»`);
@@ -158,7 +159,7 @@
             if (typeof preData.value === "undefined") {
               preData.value = "";
             };
-            console.log("El data del nuevo componente dialog:", preData);
+            // console.log("El data del nuevo componente dialog:", preData);
             dialogComponentInput.watch = scopifyMethods(dialogComponentInput.watch || {}, component);
             dialogComponentInput.computed = scopifyMethods(dialogComponentInput.computed || {}, component);
             dialogComponentInput.methods = scopifyMethods(dialogComponentInput.methods || {}, component);
@@ -213,7 +214,7 @@
           promiser: Promise.withResolvers(),
         });
         const dialogInstance = new Dialog(dialogDefinition);
-        console.log("Definición final del dialogo", dialogInstance);
+        // console.log("Definición final del dialogo", dialogInstance);
         Define_dialog: {
           this.opened = Object.assign({}, this.opened, {
             [id]: dialogInstance
